@@ -5,11 +5,11 @@ if ('serviceWorker' in navigator) {
     .catch(error => console.log('Registration failed with ' + error));
 }
 
-async function setPhotoURL() {
+async function getData() {
     try {
         const response = await fetch(API_URL);
         const json = await response.json();
-        return json.url;
+        return json;
     } catch(e) {
         console.log(e)
     }
@@ -17,8 +17,9 @@ async function setPhotoURL() {
 
 async function setImageURL(){
     let myImage = document.querySelector('img');
-    const url = await setPhotoURL();
-    myImage.src = url
+    const json = await getData();
+    console.log(json)
+    myImage.src = json.url
 }
 
 setImageURL();
