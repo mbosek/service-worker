@@ -1,29 +1,22 @@
-const cacheName = 'v1';
+const CACHE_VERSION = 'v1';
 
-const addCacheFiles = async () => {
+const addCacheFiles = async (cacheVersion) => {
     const cacheFiles = [
         './index.html',
         './style.css',
         './app.js',
     ];
 
-    const cache = await caches.open(cacheName);
+    const cache = await caches.open(cacheVersion);
     return cache.addAll(cacheFiles);
 }
 
-this.addEventListener('install', e => e.waitUntil(addCacheFiles));
+const checkCurrentCache = async (cacheVersion) => {
+    const versions = await caches.keys();
+    return versions
+        .filter(version => version !== cacheVersion)
+        .map(version => caches.delete(version))
+}
 
-this.addEventListener('activate', (e) => {
-    console.log('Activated');
-
-    e.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(cacheNames.map((thisCacheName) => {
-                if  (thisCacheName !== cacheName){
-                    console.log('Removing Cached files from ', thisCacheName)
-                    return caches.delete(thisCacheName);
-                }
-            }))
-        })
-    )
-});
+this.addEventListener('install', e => e.waitUntil(addCacheFiles(CACHE_VERSION)));
+this.addEventListener('activate', e => e.waitUntil(checkCurrentCache(CACHE_VERSION)));
