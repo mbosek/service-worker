@@ -1,20 +1,17 @@
 const cacheName = 'v1';
-const cacheFiles = [
-    './index.html',
-    './style.css',
-    './app.js',
-];
 
-this.addEventListener('install', (e) => {
-    console.log('installed');
+const addCacheFiles = async () => {
+    const cacheFiles = [
+        './index.html',
+        './style.css',
+        './app.js',
+    ];
 
-    e.waitUntil(
-        caches.open(cacheName).then((cache) => {
-            console.log('CACHING files');
-            return cache.addAll(cacheFiles);
-        })
-    )
-});
+    const cache = await caches.open(cacheName);
+    return cache.addAll(cacheFiles);
+}
+
+this.addEventListener('install', e => e.waitUntil(addCacheFiles));
 
 this.addEventListener('activate', (e) => {
     console.log('Activated');
