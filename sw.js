@@ -13,27 +13,24 @@ const addCacheFiles = async (cacheVersion, files) => {
 
 const checkCurrentCache = async (cacheVersion) => {
     const versions = await caches.keys();
-    return versions
+    const promises = versions
         .filter(version => version !== cacheVersion)
         .map(version => caches.delete(version))
+    return Promise.all(promises)
 }
 
 const fetchEvents = async (e, cacheVersion) => {
-    const response = await caches.match(e.request);
-    if ( response ) {
-        return response;
-    }
-    const requestClone = e.request.clone();
-    const mainReponseClone = await fetch(requestClone)
-    if ( !mainReponseClone ) {
-        return mainReponseClone;
-    }
-    var responseClone = mainReponseClone.clone();
     const cache = await caches.open(cacheVersion);
-    cache.put(e.request, responseClone);
-    return responseClone
+    const response = await cache.match(e.request);
+    if (response) return response;
+
+    const responseClone = await fetch(e.request.clone());
+    if (responseClone.status < 400) return responseClone;
+
+    cache.put(e.request, responseClone.clone());
+    return response;
 }
 
 this.addEventListener('install', e => e.waitUntil(addCacheFiles(CACHE_VERSION, CACHE_FILES)));
 this.addEventListener('activate', e => e.waitUntil(checkCurrentCache(CACHE_VERSION)));
-this.addEventListener('fetch', e e.respondWith(fetchEvents(e, CACHE_VERSION)));
+this.addEventListener('fetch', e => e.respondWith(fetchEvents(e, CACHE_VERSION)));
